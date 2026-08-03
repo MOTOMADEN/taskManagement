@@ -1,126 +1,101 @@
-// Inprogres.jsx
-import React from "react";
+import React, { useState } from "react";
 import styles from "./Inprogres.module.css";
 import Addbox from "../addtask/Addbox";
-import { useState } from "react";
+import { getCategoryColor } from "../../../constants/taskCategories";
 
-function Inprogres({ tasks, filterValue, Ontoggletask, Ondelete, onAddNewTask }) {
-  const getImportantColor = (typeValue) => {
-    switch (typeValue) {
-      case "newest":
-        return { backgroundColor: "#ff5e00", color: "white" };
-      case "forced":
-        return { backgroundColor: "#ff0095", color: "white" };
-      case "relax":
-        return { backgroundColor: "#00abdf", color: "white" };
-      case "important":
-        return { backgroundColor: "red", color: "white" };
-      default:
-        return { backgroundColor: "#e7c70e", color: "white" };
-    }
-  };
+function getDeadlineInfo(deadline) {
+  if (!deadline) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const due = new Date(deadline);
+  due.setHours(0, 0, 0, 0);
+  const diffDays = Math.round((due - today) / 86400000);
+
+  if (diffDays < 0) return { text: `${Math.abs(diffDays)} روز دیرکرد`, type: "overdue" };
+  if (diffDays === 0) return { text: "امروز", type: "today" };
+  if (diffDays === 1) return { text: "فردا", type: "soon" };
+  return { text: `${diffDays} روز مانده`, type: "later" };
+}
+
+function Inprogres({
+  tasks,
+  onToggleTask,
+  onDelete,
+  onEditTask,
+  onReorder,
+  canReorder,
+  categories,
+  selectableCategories,
+}) {
+  const [editingTask, setEditingTask] = useState(null);
+  const [draggedId, setDraggedId] = useState(null);
 
   const activeTasks = tasks.filter((task) => !task.isdone);
   const completedTasks = tasks.filter((task) => task.isdone);
 
-  const [showAddBox, setShowAddBox] = useState(false);
-  const [editingTaskData, setEditingTaskData] = useState(null);
+  const handleEditClick = (task) => setEditingTask(task);
+  const closeEditBox = () => setEditingTask(null);
 
-  const handleToggle = (taskId) => {
-    if (Ontoggletask) {
-      Ontoggletask(taskId);
+  const handleDragStart = (taskId) => canReorder && setDraggedId(taskId);
+  const handleDragOver = (e) => canReorder && e.preventDefault();
+  const handleDrop = (targetId) => {
+    if (canReorder && draggedId && draggedId !== targetId) {
+      onReorder(draggedId, targetId);
     }
+    setDraggedId(null);
   };
 
-  const handleDelete = (taskId) => {
-    if (window.confirm("آیا از حذف این تسک مطمئن هستید؟")) {
-      if (Ondelete) {
-        Ondelete(taskId);
-      }
-    }
-  };
+  const renderTaskCard = (task) => {
+    const deadlineInfo = getDeadlineInfo(task.deadline);
 
-  const handleEdit = (task) => {
-    // اول تسک قبلی رو حذف کن
-    if (window.confirm("آیا می‌خواهید این تسک را ویرایش کنید؟")) {
-      if (Ondelete) {
-        Ondelete(task.id);
-      }
-      // اطلاعات تسک رو برای ویرایش آماده کن
-      setEditingTaskData({
-        typeValue: task.typeValue,
-        typeTitle: task.typeTitle,
-        value: task.value,
-        description: task.description,
-        isdone: task.isdone
-      });
-      // باکس اضافه کردن رو باز کن
-      setShowAddBox(true);
-    }
-  };
-
-  const handleAddTaskFromEdit = (taskData) => {
-    if (onAddNewTask) {
-      onAddNewTask(taskData);
-    }
-    setShowAddBox(false);
-    setEditingTaskData(null);
-  };
-
-  const closeAddBox = () => {
-    setShowAddBox(false);
-    setEditingTaskData(null);
-  };
-
-  const renderTaskCard = (task) => (
-    <div key={task.id} className={styles.inprogrestasks}>
-      <div className={styles.inprogresdetails}>
-        <h2 className={styles.inprogresname}>{task.value}</h2>
-        <h3 className={styles.inprogresdiscription}>{task.description}</h3>
-      </div>
-      <div className={styles.inprogresbtns}>
-        <div className={styles.inprogresrightprt}>
-          <button className={styles.done} onClick={() => handleToggle(task.id)}>
-            {task.isdone ? "تکمیل شده ✓" : "تکمیل شد"}
-          </button>
-          <button
-            className={styles.important}
-            style={getImportantColor(task.typeValue)}
-          >
-            {task.typeTitle}
-          </button>
+    return (
+      <div
+        key={task.id}
+        className={`${styles.inprogrestasks} ${task.isdone ? styles.doneCard : ""}`}
+        draggable={canReorder}
+        onDragStart={() => handleDragStart(task.id)}
+        onDragOver={handleDragOver}
+        onDrop={() => handleDrop(task.id)}
+      >
+        {canReorder && <span className={styles.dragHandle}>⠿</span>}
+        <div className={styles.inprogresdetails}>
+          <h2 className={`${styles.inprogresname} ${task.isdone ? styles.strikethrough : ""}`}>
+            {task.value}
+          </h2>
+          <h3 className={styles.inprogresdiscription}>{task.description}</h3>
+          {deadlineInfo && (
+            <span className={`${styles.deadlineBadge} ${styles[deadlineInfo.type]}`}>
+              📅 {deadlineInfo.text}
+            </span>
+          )}
         </div>
-        <div className={styles.inprogresleftpart}>
-          <button className={styles.edit} onClick={() => handleEdit(task)}>
-            🖊️
-          </button>
-          <button
-            className={styles.delet}
-            onClick={() => handleDelete(task.id)}
-          >
-            X
-          </button>
+        <div className={styles.inprogresbtns}>
+          <div className={styles.inprogresrightprt}>
+            <button className={styles.done} onClick={() => onToggleTask(task.id)}>
+              {task.isdone ? "تکمیل شده ✓" : "تکمیل شد"}
+            </button>
+            <button className={styles.important} style={getCategoryColor(task.typeValue, categories)}>
+              {task.typeTitle}
+            </button>
+          </div>
+          <div className={styles.inprogresleftpart}>
+            <button className={styles.edit} onClick={() => handleEditClick(task)}>
+              🖊️
+            </button>
+            <button className={styles.delet} onClick={() => onDelete(task.id)}>
+              X
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  );
-
-  // باید selectvalue رو از جایی بگیریم - می‌تونیم از props بیاریم یا اینجا تعریف کنیم
-  const selectvalue = [
-    { id: 0, title: "انتخواب نوع", value: "all", describe: "همه" },
-    { id: 1, title: "جدید ترین", value: "newest", describe: "جدید ترین ها" },
-    { id: 2, title: "اجباری", value: "forced", describe: "اجباری ها" },
-    { id: 3, title: "اختیاری ", value: "relax", describe: "آروم باش" },
-    { id: 4, title: " بحرانی", value: "important", describe: "اوضاع بده" },
-  ];
+    );
+  };
 
   return (
     <div className={styles.inprogres}>
-      {showAddBox && <div className={styles.overlay} onClick={closeAddBox} />}
-      
-      <h3 className={styles.inprogrestxt}>
-        تسک های در حال انجام : ({activeTasks.length})
-      </h3>
+      {editingTask && <div className={styles.overlay} onClick={closeEditBox} />}
+
+      <h3 className={styles.inprogrestxt}>تسک های در حال انجام : ({activeTasks.length})</h3>
       <div className={styles.inprogrescard}>
         {activeTasks.length > 0 ? (
           activeTasks.map(renderTaskCard)
@@ -131,10 +106,8 @@ function Inprogres({ tasks, filterValue, Ontoggletask, Ondelete, onAddNewTask })
           </div>
         )}
       </div>
-      
-      <h3 className={styles.inprogrestxt}>
-        تسک های تکمیل شده : ({completedTasks.length})
-      </h3>
+
+      <h3 className={styles.inprogrestxt}>تسک های تکمیل شده : ({completedTasks.length})</h3>
       <div className={styles.inprogrescard}>
         {completedTasks.length > 0 ? (
           completedTasks.map(renderTaskCard)
@@ -144,12 +117,14 @@ function Inprogres({ tasks, filterValue, Ontoggletask, Ondelete, onAddNewTask })
           </div>
         )}
       </div>
-      
-      {showAddBox && (
+
+      {editingTask && (
         <Addbox
-          closebox={closeAddBox}
-          selectvalue={selectvalue}
-          onAddTask={handleAddTaskFromEdit}
+          closebox={closeEditBox}
+          onEditTask={onEditTask}
+          initialData={editingTask}
+          editingTaskId={editingTask.id}
+          categories={selectableCategories}
         />
       )}
     </div>
