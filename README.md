@@ -25,12 +25,12 @@ A modern, feature-rich task management web app built with React — persistent t
 -->
 
 <div align="center">
-  <img src=".github/screenshots/light-mode.png" alt="Light mode view" width="45%" />
-  <img src=".github/screenshots/dark-mode.png" alt="Dark mode view" width="45%" />
+  <img src="./screenshots/light-mode.png" alt="Light mode view" width="45%" />
+  <img src="./screenshots/dark-mode.png" alt="Dark mode view" width="45%" />
 </div>
 
 <div align="center">
-  <img src=".github/screenshots/mobile-view.png" alt="Mobile view" width="30%" />
+  <img src="./screenshots/mobile-view.png" alt="Mobile view" width="30%" />
 </div>
 
 ---
