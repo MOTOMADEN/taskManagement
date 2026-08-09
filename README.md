@@ -7,7 +7,7 @@ A modern, feature-rich task management web app built with React — persistent t
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 
-[Live Demo](#) · [Report a Bug](../../issues) · [Request a Feature](../../issues)
+[Live Demo](https://motomaden.github.io/taskManagement/) · [Report a Bug](../../issues) · [Request a Feature](../../issues)
 
 </div>
 
