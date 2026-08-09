@@ -1,3 +1,5 @@
+<div align="center">
+
 # 🕰️ Task Manager
 
 A modern, feature-rich task management web app built with React — persistent to-do lists with categories, deadlines, dark mode, and more.
@@ -224,8 +226,8 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 **Ali Esmaeili**
 
 <!-- Add your links -->
-- GitHub: [@your-username](https://github.com/your-username)
-- LinkedIn: [your-name](https://linkedin.com/in/your-name)
+- GitHub: [MOTOMADEN](https://github.com/MOTOMADEN)
+
 
 <div align="center">
 
